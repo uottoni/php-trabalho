@@ -1,0 +1,33 @@
+.nav-buttons{ 
+    margin-left:60%; 
+} 
+#home{ 
+    background-image: url('../imgs/fundo-home.jpg'); 
+    width: 100%; 
+    height: 100vh; 
+    background-size: cover; 
+    background-position-y: 10px; 
+    display: flex; 
+    flex-direction: column; 
+    justify-content: center; 
+    align-items: flex-start; 
+} 
+ 
+#home span{ 
+    color: coral; 
+} 
+
+#home div{
+    border-radius: 12px;
+    padding: 10px;
+}
+
+#footer{
+    color: white;
+    background-color: black;
+    position: relative;
+    bottom: 0;
+}
+.miniatura{
+    width: 6rem;
+}

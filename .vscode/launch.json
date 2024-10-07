@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Listen for XDebug",
+            "type": "php",
+            "request": "launch",
+            "port": 9000,
+            "log" : true,
+            "stopOnEntry": false,
+            "pathMappings": {
+                "/var/www/html": "C:\\Users\\spawn\\OneDrive\\Documentos\\Ampli\\Materias\\Desenvolvimento de E-Commerce com CMS\\trabalho"
+            }
+        },
+        {
+            "name": "Launch currently open script",
+            "type": "php",
+            "request": "launch",
+            "program": "${file}",
+            "cwd": "${fileDirname}",
+            "port": 9000
+        }
+    ]
+}
