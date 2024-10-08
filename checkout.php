@@ -1,12 +1,8 @@
-<?php include 'header.php'; 
-//carregar os dados do usuário
-$user_id = $_SESSION['user_id'];
-$user_name = $_SESSION['user_name'];
-?>
+<?php include 'header.php'; ?>
 <?php
 
 
-if($_SERVER['REQUEST_METHOD'] == 'POST'){
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     //processar o pedido
     $order_cost = 100.00;
     $order_status = 'Pendente';
@@ -26,32 +22,90 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     } else {
         echo '<p>Erro ao criar o pedido: ' . $stmt->error . '</p>';
     }
-
+    $order_id = $conn->insert_id;
     $stmt->close();
-}
 
+    //inserir itens do pedido armaenados em $_SESSION['cart']
 
-if (!isset($_SESSION['user_id'])) {
-    echo '<p>Você precisa estar logado para finalizar a compra. <a href="cadastro.php">Cadastre-se aqui</a></p>';
-} else {
-    // Confirmar endereço do usuário
-    $user_id = $_SESSION['user_id'];
-    // Supondo que você tenha uma função para buscar o endereço do usuário
-    $endereco = getUserAddress($user_id);
-    
-    if ($endereco) {
-        echo '<p>Endereço de entrega: ' . htmlspecialchars($endereco) . '</p>';
-        echo '<button onclick="checkoutPaypal()">Finalizar Compra com PayPal</button>';
-    } else {
-        echo '<p>Por favor, confirme seu endereço de entrega. <a href="endereco.php">Atualizar endereço</a></p>';
+    foreach ($_SESSION['cart'] as $product_id => $quantity) {
+        $sql = "INSERT INTO order_items (order_id, product_id, quantity, order_date) VALUES (?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("iiis", $order_id, $product_id, $quantity, $order_date);
+        $stmt->execute();
+        $stmt->close();
     }
 }
 ?>
-<script>
-function checkoutPaypal() {
-    // Chame a função de checkout do PayPal aqui
-    console.log('Iniciando checkout do PayPal...');
-    // Exemplo: paypal.Buttons().render('#paypal-button-container');
-}
-</script>
 
+
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Produtos</title>
+    <?php include 'links.php'; ?>
+</head>
+
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-3">
+
+                <?php
+                if (!isset($_SESSION['user_id'])) {
+
+                    echo '<p>Você precisa estar logado para finalizar a compra. <a href="cadastro.php">Cadastre-se aqui</a></p>';
+                    echo '<p>Entre com suas credenciais. <a href="login.php">Entrar aqui</a></p>';
+                } else {
+                    // Confirmar endereço do usuário
+                    $user_id = $_SESSION['user_id'];
+
+                    // Consulta para obter os dados do produto
+                    $sql = "SELECT * FROM users WHERE user_id = ? LIMIT 1";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    // Verifica se o produto foi encontrado
+                    if ($result->num_rows > 0) {
+                        $user = $result->fetch_assoc();
+                        $cidade = $user['shipping_city'];
+                        $uf = $user['shipping_uf'];
+                        $endereco = $user['shipping_address'];
+                    } else {
+                        echo "Usuário não encontrado.";
+                        exit();
+                    }
+
+
+
+                    echo '<label for="shipping_address">Endereço:</label>';
+                    echo '<input type="text" id="shipping_address" name="shipping_address" value="' . htmlspecialchars($endereco) . '" required><br>';
+                    echo '<label for="shipping_city">Cidade:</label>';
+                    echo '<input type="text" id="shipping_city" name="shipping_city" value="' . htmlspecialchars($cidade) . '" required><br>';
+                    echo '<label for="shipping_uf">UF:</label>';
+                    echo '<input type="text" id="shipping_uf" name="shipping_uf" value="' . htmlspecialchars($uf) . '" required><br>';
+                    echo '<button type="submit">Finalizar Compra</button>';
+                    echo '</form>';
+
+                }
+                ?>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function checkoutPaypal() {
+            // Chame a função de checkout do PayPal aqui
+            console.log('Iniciando checkout do PayPal...');
+            // Exemplo: paypal.Buttons().render('#paypal-button-container');
+        }
+    </script>
+</body>
+
+</html>
